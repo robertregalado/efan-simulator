@@ -1,6 +1,7 @@
 # Fan Simulator Project Documentation
 
 ## Overview
+![](https://github.com/robertregalado/efan-simulator/blob/main/efan.png)
 
 The Fan Simulator is a web-based application that simulates a fan with customizable features such as blade count and rotation speed. This document provides step-by-step instructions on how to set up and run the project on a Node.js server.
 
