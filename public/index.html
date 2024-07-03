@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fan Simulator</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #f0f0f0;
+            margin: 0;
+        }
+
+        #fan {
+            width: 160px; /* Increased width to accommodate the circle */
+            height: 320px; /* Increased height for the circle and to position elements */
+            position: relative;
+            margin: 0 auto;
+        }
+
+        .fan-container {
+            width: 120px;
+            height: 120px;
+            position: absolute;
+            top: 22px; /* Adjusted top position to center vertically */
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1; /* Ensure blades are above the circle */
+        }
+
+        .inner-circle {
+            width: 20px;
+            height: 20px;
+            background-color: #000000; /* Background color of the inner circle */
+            border: 2px solid #333; /* Border of the inner circle */
+            border-radius: 50%; /* Make it a circle */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2; /* Ensure inner circle is above blades */
+        }
+
+        .blades {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0%;
+            left: 0%;
+            transform-origin: center;
+            animation: spin infinite linear;
+        }
+
+        .blade {
+            width: 50%;
+            height: 10px;
+            background: #333;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform-origin: 0% 50%;
+            border-radius: 5px;
+        }
+
+        .blade:nth-child(1) { transform: rotate(0deg); }
+        .blade:nth-child(2) { transform: rotate(120deg); }
+        .blade:nth-child(3) { transform: rotate(240deg); }
+
+
+        .fan-circle {
+            width: 140px;
+            height: 140px;
+            border: 4px solid #333;
+            border-radius: 50%;
+            position: absolute;
+            top: 16px; /* Adjusted top position to center vertically */
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 0; /* Ensure circle is behind the blades */
+        }
+
+        .stand {
+            width: 30px; /* Width of the stand */
+            height: 200px; /* Height of the stand */
+            background: #333;
+            position: absolute;
+            top: 160px; /* Adjusted top position to center vertically */
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column; /* Stack items vertically */
+        }
+
+        .base {
+            width: 100px;
+            height: 40px;
+            background: #333;
+            position: absolute;
+            top: 340px; /* Adjusted top position to center vertically */
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 10px 10px 0 0;
+        }
+
+        .speed-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 80%; /* Adjusted width for the slider */
+            height: 10px;
+            background: #ccc;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity .15s ease-in-out;
+            margin: 10px 0;
+            border-radius: 5px;
+            position: relative;
+            transform: rotate(-90deg); /* Rotate slider vertically */
+            transform-origin: center; /* Rotate around center */
+        }
+
+        .speed-slider:hover {
+            opacity: 1;
+        }
+
+        .speed-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: red;
+            border-radius: 50%;
+            cursor: pointer;
+            position: relative;
+            z-index: 1;
+            transform: rotate(90deg); /* Adjust thumb orientation */
+        }
+
+        .speed-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: red;
+            border-radius: 50%;
+            cursor: pointer;
+            position: relative;
+            z-index: 1;
+            transform: rotate(90deg); /* Adjust thumb orientation */
+        }
+
+        .stop-button {
+            width: 20px; /* Adjusted width and height to make it circular */
+            height: 20px; /* Adjusted width and height to make it circular */
+            background-color: #FF6347;
+            color: white;
+            border: none;
+            border-radius: 50%; /* Rounded border to create a circle */
+            cursor: pointer;
+            outline: none;
+            margin-top: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Optional: Adding shadow for depth */
+        }
+
+        .stop-button:hover {
+            background-color: #FF5733; /* Color change on hover */
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="fan">
+        <div class="fan-circle"></div> <!-- Circle added around the blades -->
+        <div class="fan-container">
+            <div class="inner-circle"></div> <!-- Inner circle where blades are rotating -->
+            <div class="blades">
+                <div class="blade"></div>
+                <div class="blade"></div>
+                <div class="blade"></div>
+            </div>
+        </div>
+        <div class="stand">
+            <input type="range" min="1" max="3" value="1" class="speed-slider" id="speedSlider">
+            <button class="stop-button" id="stopButton">Stop</button>
+        </div>
+        <div class="base"></div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const blades = document.querySelector('.blades');
+        const speedSlider = document.getElementById('speedSlider');
+        const stopButton = document.getElementById('stopButton');
+
+        speedSlider.addEventListener('input', function() {
+            const speed = parseInt(this.value);
+            socket.emit('setSpeed', speed);
+        });
+
+        stopButton.addEventListener('click', function() {
+            socket.emit('setSpeed', 0); // Stop the fan
+            speedSlider.value = 0; // Reset the slider position
+        });
+
+        socket.on('updateSpeed', (speed) => {
+            blades.style.animationDuration = speed === 0 ? '0s' : `${4 / speed}s`;
+        });
+    </script>
+</body>
+</html>
